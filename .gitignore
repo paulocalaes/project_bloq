@@ -51,6 +51,8 @@ env/
 ENV/
 venv.bak/
 venv/
+.venv/
+bloqenv/
 
 # VSCode settings
 .vscode/

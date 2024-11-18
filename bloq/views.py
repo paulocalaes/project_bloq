@@ -1,9 +1,14 @@
+'''
+Module for the Bloq views.
+'''
 from rest_framework import generics
+from drf_yasg.utils import swagger_auto_schema
 from .models import Bloq
 from .serializers import BloqSerializer, BloqListSerializer
-from drf_yasg.utils import swagger_auto_schema
 
 class BloqBulkCreateView(generics.ListCreateAPIView):
+    '''
+    List all Bloqs or create multiple Bloqs.'''
     queryset = Bloq.objects.all()
 
     def get_serializer_class(self):
