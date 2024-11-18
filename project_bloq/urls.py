@@ -18,6 +18,8 @@ from django.urls import path, include, re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -30,13 +32,20 @@ schema_view = get_schema_view(
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
+   authentication_classes=[TokenAuthentication]
 )
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/<str:version>/bloq/', include('bloq.urls')),
-    path('api/<str:version>/locker/', include('locker.urls')),
-    path('api/<str:version>/rent/', include('rent.urls')),
+    path('api/<str:version>/', include([
+        path('bloq/', include('bloq.urls')),
+        path('locker/', include('locker.urls')),
+        path('rent/', include('rent.urls')),
+
+        path('auth/', include('djoser.urls')),  
+        path('auth/', include('djoser.urls.authtoken')),
+    ])),  
 
     # Rotas do Swagger
     re_path(r'^swagger/v1(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), {'version': 'v1'}, name='schema-json-v1'),
