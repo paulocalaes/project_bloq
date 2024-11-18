@@ -14,5 +14,10 @@ class LockerListSerializer(serializers.ListSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        locker_objects = [Locker(**item) for item in validated_data]
-        return Locker.objects.bulk_create(locker_objects)
+        instances = []
+        for data in validated_data:
+            instance = Locker(**data)
+            instance.full_clean()
+            instance.save()
+            instances.append(instance)
+        return instances

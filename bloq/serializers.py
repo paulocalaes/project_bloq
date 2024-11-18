@@ -12,5 +12,10 @@ class BloqListSerializer(serializers.ListSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        bloq_objects = [Bloq(**item) for item in validated_data]
-        return Bloq.objects.bulk_create(bloq_objects)
+        instances = []
+        for data in validated_data:
+            instance = Bloq(**data)
+            instance.full_clean() 
+            instance.save()
+            instances.append(instance)
+        return instances

@@ -14,5 +14,10 @@ class RentListSerializer(serializers.ListSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        rent_objects = [Rent(**item) for item in validated_data]
-        return Rent.objects.bulk_create(rent_objects)
+        instances = []
+        for data in validated_data:
+            instance = Rent(**data)
+            instance.full_clean()
+            instance.save()
+            instances.append(instance)
+        return instances
