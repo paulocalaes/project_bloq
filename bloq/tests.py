@@ -2,6 +2,8 @@ from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from .models import Bloq
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 class BloqModelTest(TestCase):
     def setUp(self):
@@ -32,6 +34,10 @@ class BloqAPITest(APITestCase):
                 "address": "Address B"
             }
         ]
+
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_create_multiple_bloqs(self):
         response = self.client.post(self.url, self.bloq_data, format='json')

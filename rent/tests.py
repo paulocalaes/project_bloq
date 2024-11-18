@@ -4,6 +4,8 @@ from django.urls import reverse
 from .models import Rent, RentStatus, RentSize
 from locker.models import Locker, LockerStatus
 from bloq.models import Bloq
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 class RentModelTest(TestCase):
     def setUp(self):
@@ -55,6 +57,9 @@ class RentAPITest(APITestCase):
                 "status": "WAITING_PICKUP"
             }
         ]
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_create_multiple_rents(self):
         response = self.client.post(self.url, self.rent_data, format='json')
