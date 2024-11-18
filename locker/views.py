@@ -1,7 +1,14 @@
-from rest_framework import generics
-from .models import Locker
-from .serializers import LockerSerializer, LockerListSerializer
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
+from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .serializers import LockerSerializer, LockerListSerializer
+from .models import Locker, LockerStatus
 
 class LockerBulkCreateView(generics.ListCreateAPIView):
     queryset = Locker.objects.all()
@@ -26,5 +33,34 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
+class AvailableLockerListView(generics.ListAPIView):
+    queryset = Locker.objects.all()
+    serializer_class = LockerSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['bloqId', 'size']
+    ordering_fields = ['id']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(isOccupied=False, status=LockerStatus.OPEN)
+
+        bloq_id = self.request.query_params.get('bloqId', None)
+        if bloq_id:
+            queryset = queryset.filter(bloq__id=bloq_id)
+        size = self.request.query_params.get('size', None)
+        if size:
+            queryset = queryset.filter(size=size)
+        return queryset
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of available lockers.",
+        responses={200: LockerSerializer(many=True)},
+        manual_parameters=[
+            openapi.Parameter('bloq_id', openapi.IN_QUERY, description="Filter by Bloq ID", type=openapi.TYPE_STRING),
+            openapi.Parameter('size', openapi.IN_QUERY, description="Filter by locker size", type=openapi.TYPE_STRING),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
