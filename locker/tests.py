@@ -102,3 +102,27 @@ class AvailableLockerAPITest(APITestCase):
         
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], '1')
+
+class LockerDetailAPITest(APITestCase):
+    def setUp(self):
+        self.bloq = Bloq.objects.create(id="1", title="Bloq A", address="Address A")
+        self.locker = Locker.objects.create(
+            id="1", bloqId=self.bloq, status=LockerStatus.OPEN, isOccupied=False, size=LockerSize.M
+        )
+        self.url = reverse('locker-detail', kwargs={'version': 'v1', 'id': self.locker.id})
+        
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def test_get_locker_detail(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.locker.id)
+        self.assertEqual(response.data['status'], LockerStatus.OPEN)
+        self.assertEqual(response.data['isOccupied'], False)
+
+    def test_locker_not_found(self):
+        url = reverse('locker-detail', kwargs={'version': 'v1', 'id': '999'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

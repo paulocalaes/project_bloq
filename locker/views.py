@@ -32,6 +32,22 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+    
+class LockerDetailView(generics.RetrieveAPIView):
+    queryset = Locker.objects.all()
+    serializer_class = LockerSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    @swagger_auto_schema(
+        operation_description="Retrieve detailed information about a specific locker.",
+        responses={
+            200: LockerSerializer(),
+            404: 'Locker not found'
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class AvailableLockerListView(generics.ListAPIView):
     queryset = Locker.objects.all()
