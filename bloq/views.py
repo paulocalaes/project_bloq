@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework import generics
+from .models import Bloq
+from .serializers import BloqSerializer
 
-# Create your views here.
+class BloqListCreate(generics.ListCreateAPIView):
+    queryset = Bloq.objects.all()
+    serializer_class = BloqSerializer
