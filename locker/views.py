@@ -1,9 +1,13 @@
 from rest_framework import generics
 from .models import Locker
-from .serializers import LockerSerializer
+from .serializers import LockerSerializer, LockerListSerializer
 
-class LockerListCreate(generics.ListCreateAPIView):
+class LockerBulkCreateView(generics.ListCreateAPIView):
     queryset = Locker.objects.all()
-    serializer_class = LockerSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return LockerListSerializer
+        return LockerSerializer
 
 

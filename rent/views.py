@@ -1,8 +1,12 @@
 from rest_framework import generics
 from .models import Rent
-from .serializers import RentSerializer
+from .serializers import RentSerializer, RentListSerializer
 
-class RentListCreate(generics.ListCreateAPIView):
+class RentBulkCreateView(generics.ListCreateAPIView):
     queryset = Rent.objects.all()
-    serializer_class = RentSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return RentListSerializer
+        return RentSerializer
 

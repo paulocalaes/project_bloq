@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import BloqListCreate
+from .views import BloqBulkCreateView
 
 urlpatterns = [
-    path('', BloqListCreate.as_view(), name='bloq-list-create'),
+    path('', BloqBulkCreateView.as_view(), name='bloq-list-create'),
 ]

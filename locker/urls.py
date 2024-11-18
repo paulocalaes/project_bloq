@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import LockerListCreate
+from .views import LockerBulkCreateView
 
 urlpatterns = [
-    path('', LockerListCreate.as_view(), name='locker-list-create'),
+    path('', LockerBulkCreateView.as_view(), name='locker-list-create'),
 ]
