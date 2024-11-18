@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'bloq.wsgi.application'
+WSGI_APPLICATION = 'project_bloq.wsgi.application'
 
 
 # Database

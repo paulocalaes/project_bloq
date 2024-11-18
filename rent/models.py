@@ -17,7 +17,7 @@ class RentSize(models.TextChoices):
 
 class Rent(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
-    locker = models.ForeignKey(Locker, on_delete=models.CASCADE)
+    lockerId = models.ForeignKey(Locker, on_delete=models.CASCADE)
     weight = models.FloatField()
     size = models.CharField(max_length=2, choices=RentSize.choices)
     status = models.CharField(max_length=20, choices=RentStatus.choices)

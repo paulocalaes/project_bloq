@@ -8,7 +8,7 @@ class LockerStatus(models.TextChoices):
 
 class Locker(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
-    bloq = models.ForeignKey(Bloq, on_delete=models.CASCADE)
+    bloqId = models.ForeignKey(Bloq, on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=LockerStatus.choices)
     isOccupied = models.BooleanField()
 
