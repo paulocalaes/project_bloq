@@ -65,7 +65,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint app_bloq locker rent
+          pylint bloq locker rent
 
       - name: Run tests
         run: |
