@@ -6,6 +6,11 @@ from drf_yasg.utils import swagger_auto_schema
 class LockerBulkCreateView(generics.ListCreateAPIView):
     queryset = Locker.objects.all()
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return LockerListSerializer
+        return LockerSerializer
+
     @swagger_auto_schema(
         operation_description="Return the list of all Lockers.",
         responses={200: LockerSerializer(many=True)}

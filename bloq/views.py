@@ -6,6 +6,11 @@ from drf_yasg.utils import swagger_auto_schema
 class BloqBulkCreateView(generics.ListCreateAPIView):
     queryset = Bloq.objects.all()
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return BloqListSerializer
+        return BloqSerializer
+
     @swagger_auto_schema(
         operation_description="Return the list of all Bloqs.",
         responses={200: BloqSerializer(many=True)}
