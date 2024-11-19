@@ -1,9 +1,15 @@
+'''
+Views for the rent app
+'''
 from rest_framework import generics
+from drf_yasg.utils import swagger_auto_schema
 from .models import Rent
 from .serializers import RentSerializer, RentListSerializer
-from drf_yasg.utils import swagger_auto_schema
 
 class RentBulkCreateView(generics.ListCreateAPIView):
+    '''
+    View for creating multiple Rents
+    '''
     queryset = Rent.objects.all()
 
     def get_serializer_class(self):
@@ -25,4 +31,3 @@ class RentBulkCreateView(generics.ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
