@@ -2,7 +2,7 @@
 This file contains the model for the Rent object.
 '''
 from django.db import models
-from locker.models import Locker
+from locker.models import Locker,LockerSize
 
 class RentStatus(models.TextChoices):
     '''
@@ -13,16 +13,6 @@ class RentStatus(models.TextChoices):
     WAITING_PICKUP = 'WAITING_PICKUP', 'Waiting Pickup'
     DELIVERED = 'DELIVERED', 'Delivered'
 
-class RentSize(models.TextChoices):
-    '''
-    Enum for Rent size
-    '''
-    XS = 'XS', 'Extra Small'
-    S = 'S', 'Small'
-    M = 'M', 'Medium'
-    L = 'L', 'Large'
-    XL = 'XL', 'Extra Large'
-
 class Rent(models.Model):
     '''
     Model for Rent object
@@ -30,7 +20,7 @@ class Rent(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
     lockerId = models.ForeignKey(Locker, on_delete=models.CASCADE)
     weight = models.FloatField()
-    size = models.CharField(max_length=2, choices=RentSize.choices)
+    size = models.CharField(max_length=2, choices=LockerSize.choices)
     status = models.CharField(max_length=20, choices=RentStatus.choices)
 
     objects = models.Manager()
