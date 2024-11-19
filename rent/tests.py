@@ -1,11 +1,11 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.urls import reverse
-from .models import Rent, RentStatus, RentSize
 from locker.models import Locker, LockerStatus
 from bloq.models import Bloq
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
+from .models import Rent, RentStatus, LockerSize as RentSize
 
 class RentModelTest(TestCase):
     def setUp(self):
