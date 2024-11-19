@@ -1,16 +1,19 @@
+'''
+Views for the Locker app.
+'''
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-
 from .serializers import LockerSerializer, LockerListSerializer
 from .models import Locker, LockerStatus
 
 class LockerBulkCreateView(generics.ListCreateAPIView):
+    '''
+    View for creating multiple Lockers at once.
+    '''
     queryset = Locker.objects.all()
 
     def get_serializer_class(self):
@@ -32,8 +35,11 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-    
+
 class LockerDetailView(generics.RetrieveAPIView):
+    '''
+    View for retrieving detailed information about a specific locker.
+    '''
     queryset = Locker.objects.all()
     serializer_class = LockerSerializer
     permission_classes = [IsAuthenticated]
@@ -50,6 +56,9 @@ class LockerDetailView(generics.RetrieveAPIView):
         return super().get(request, *args, **kwargs)
 
 class AvailableLockerListView(generics.ListAPIView):
+    '''
+    View for retrieving a list of available lockers.
+    '''
     queryset = Locker.objects.all()
     serializer_class = LockerSerializer
     permission_classes = [IsAuthenticated]
@@ -73,10 +82,20 @@ class AvailableLockerListView(generics.ListAPIView):
         operation_description="Retrieve a list of available lockers.",
         responses={200: LockerSerializer(many=True)},
         manual_parameters=[
-            openapi.Parameter('bloq_id', openapi.IN_QUERY, description="Filter by Bloq ID", type=openapi.TYPE_STRING),
-            openapi.Parameter('size', openapi.IN_QUERY, description="Filter by locker size", type=openapi.TYPE_STRING),
+           openapi.Parameter(
+               'bloq_id', 
+               openapi.IN_QUERY,
+               description="Filter by Bloq ID",
+               type=openapi.TYPE_STRING
+            ),
+           openapi.Parameter(
+               'size', 
+               openapi.IN_QUERY,
+               description="Filter by locker size",
+               type=openapi.TYPE_STRING
+            ),
         ]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
+    
