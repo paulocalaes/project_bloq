@@ -86,3 +86,36 @@ class RentAPITest(APITestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
+
+    def test_dropoff_rent(self):
+        rent = Rent.objects.create(
+            id="1",
+            lockerId=self.locker,
+            weight=10.5,
+            size=RentSize.M,
+            status=RentStatus.WAITING_DROPOFF
+        )
+        url = reverse('rent-dropoff', kwargs={'version': 'v1', 'id': rent.id})
+        response = self.client.patch(url, {}, format='json')
+        rent = Rent.objects.get(id=rent.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(rent.status, RentStatus.WAITING_PICKUP)
+        locker = Locker.objects.get(id=self.locker.id)
+        self.assertTrue(locker.isOccupied)
+
+    def test_pickup_rent(self):
+        rent = Rent.objects.create(
+            id="1",
+            lockerId=self.locker,
+            weight=10.5,
+            size=RentSize.M,
+            status=RentStatus.WAITING_PICKUP
+        )
+        url = reverse('rent-pickup', kwargs={'version': 'v1', 'id': rent.id})
+        response = self.client.patch(url, {}, format='json')
+        rent = Rent.objects.get(id=rent.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(rent.status, RentStatus.DELIVERED)
+        locker = Locker.objects.get(id=self.locker.id)
+        self.assertFalse(locker.isOccupied)
+        self.assertEqual(locker.status, LockerStatus.OPEN)
