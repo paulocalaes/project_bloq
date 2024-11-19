@@ -36,7 +36,7 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-class LockerDetailView(generics.RetrieveAPIView):
+class LockerDetailView(generics.RetrieveUpdateDestroyAPIView):
     '''
     View for retrieving detailed information about a specific locker.
     '''
@@ -46,14 +46,26 @@ class LockerDetailView(generics.RetrieveAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(
-        operation_description="Retrieve detailed information about a specific locker.",
-        responses={
-            200: LockerSerializer(),
-            404: 'Locker not found'
-        }
+        operation_description="Return the Locker instance.",
+        responses={200: LockerSerializer}
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Update the Locker instance.",
+        request_body=LockerSerializer,
+        responses={200: LockerSerializer}
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Delete the Locker instance.",
+        responses={204: None}
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
 
 class AvailableLockerListView(generics.ListAPIView):
     '''
