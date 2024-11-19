@@ -54,6 +54,14 @@ To run the test suite for all applications:
 
 `docker-compose run web python manage.py test`
 
+To run and generate test coverage report:
+
+`docker compose run web coverage run manage.py test`
+
+To show test coverage:
+
+`docker compose run web coverage report -m`
+
 This will execute all unit tests.
 
 API Documentation
