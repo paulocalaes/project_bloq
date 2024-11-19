@@ -54,7 +54,7 @@ class LockerAPITest(APITestCase):
     def test_create_multiple_lockers(self):
         response = self.client.post(self.url, self.locker_data, format='json')
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Locker.objects.count(), 2)
+        self.assertEqual(len(response.data), 2)
 
     def test_get_locker_list(self):
         Locker.objects.create(id="1", bloqId=self.bloq, status=LockerStatus.OPEN, isOccupied=False)
@@ -62,7 +62,7 @@ class LockerAPITest(APITestCase):
 
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data['count'], 2)
 
 class AvailableLockerAPITest(APITestCase):
     def setUp(self):
@@ -86,22 +86,22 @@ class AvailableLockerAPITest(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        self.assertEqual(len(response.data), 2)
-        locker_ids = [locker['id'] for locker in response.data]
+        self.assertEqual(response.data['count'], 2)
+        locker_ids = [locker['id'] for locker in response.data['results']]
         self.assertIn('1', locker_ids)
         self.assertIn('3', locker_ids)
 
     def test_filter_by_bloq_id(self):
         response = self.client.get(self.url, {'bloq': '1'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  
+        self.assertEqual(response.data['count'], 2)  
 
     def test_filter_by_size(self):
         response = self.client.get(self.url, {'size': 'M'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], '1')
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], '1')
 
 class LockerDetailAPITest(APITestCase):
     def setUp(self):

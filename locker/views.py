@@ -6,15 +6,26 @@ from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from .serializers import LockerSerializer, LockerListSerializer
 from .models import Locker, LockerStatus
+
+class StandardResultsSetPagination(PageNumberPagination):
+    '''
+    Standard pagination for the Locker views.
+    '''
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class LockerBulkCreateView(generics.ListCreateAPIView):
     '''
     View for creating multiple Lockers at once.
     '''
-    queryset = Locker.objects.all()
+    queryset = Locker.objects.all().order_by('id')
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -73,6 +84,7 @@ class AvailableLockerListView(generics.ListAPIView):
     '''
     queryset = Locker.objects.all()
     serializer_class = LockerSerializer
+    pagination_class = StandardResultsSetPagination
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['bloqId', 'size']
@@ -80,7 +92,7 @@ class AvailableLockerListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.filter(isOccupied=False, status=LockerStatus.OPEN)
+        queryset = queryset.filter(isOccupied=False, status=LockerStatus.OPEN).order_by('id')
 
         bloq_id = self.request.query_params.get('bloqId', None)
         if bloq_id:
