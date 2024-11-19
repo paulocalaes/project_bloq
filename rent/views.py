@@ -2,9 +2,9 @@
 Views for the rent app
 '''
 from rest_framework import generics
+from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from locker.models import Locker, LockerStatus
-from rest_framework.response import Response
 from .models import Rent, RentStatus
 from .serializers import RentSerializer, RentListSerializer
 
@@ -39,7 +39,7 @@ class RentBulkCreateView(generics.ListCreateAPIView):
             Locker.objects.filter(id=locker).update(status=LockerStatus.OPEN, isOccupied=False)
             rent['status'] = RentStatus.WAITING_DROPOFF
         return super().post(request, *args, **kwargs)
-    
+   
 class RentDropoffView(generics.UpdateAPIView):
     '''
     View for dropping off a Rent
@@ -63,7 +63,7 @@ class RentDropoffView(generics.UpdateAPIView):
         rent.save()
         serializer = self.get_serializer(rent)
         return Response(serializer.data)
-  
+ 
 class RentPickupView(generics.UpdateAPIView):
     '''
     View for Picking up a Rent
