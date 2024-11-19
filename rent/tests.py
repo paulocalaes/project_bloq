@@ -85,7 +85,7 @@ class RentAPITest(APITestCase):
 
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data['count'], 2)
 
     def test_dropoff_rent(self):
         rent = Rent.objects.create(
