@@ -66,7 +66,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint bloq locker rent
+          pylint --fail-under=7.0 bloq locker rent
 
       - name: Run tests
         run: |
