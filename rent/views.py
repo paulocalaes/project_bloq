@@ -3,17 +3,27 @@ Views for the rent app
 '''
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from drf_yasg.utils import swagger_auto_schema
 from locker.models import Locker, LockerStatus
 from .models import Rent, RentStatus
 from .serializers import RentSerializer, RentListSerializer
 
-
+class StandardResultsSetPagination(PageNumberPagination):
+    '''
+    Standard pagination for the Bloq views.
+    '''
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 class RentBulkCreateView(generics.ListCreateAPIView):
     '''
     View for creating multiple Rents
     '''
     queryset = Rent.objects.all()
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -44,6 +54,7 @@ class RentDropoffView(generics.UpdateAPIView):
     '''
     View for dropping off a Rent
     '''
+    permission_classes = [IsAuthenticated]
     queryset = Rent.objects.all()
     serializer_class = RentSerializer
     lookup_field = 'id'
@@ -68,6 +79,7 @@ class RentPickupView(generics.UpdateAPIView):
     '''
     View for Picking up a Rent
     '''
+    permission_classes = [IsAuthenticated]
     queryset = Rent.objects.all()
     serializer_class = RentSerializer
     lookup_field = 'id'
