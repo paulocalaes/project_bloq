@@ -7,21 +7,21 @@ from locker.models import Locker, LockerStatus, LockerSize
 from .models import Bloq
 
 class BloqModelTest(TestCase):
-    def setUp(self):
+    def setUp(self)->None:
         self.bloq = Bloq.objects.create(
             id="1",
             title="Bloq Test",
             address="Test Address",
         )
 
-    def test_bloq_creation(self):
+    def test_bloq_creation(self)->None:
         self.assertEqual(self.bloq.title, "Bloq Test")
         self.assertEqual(self.bloq.address, "Test Address")
         self.assertEqual(str(self.bloq), "Bloq Test")
 
 
 class BloqAPITest(APITestCase):
-    def setUp(self):
+    def setUp(self)->None:
         self.url = reverse('bloq-list-create', kwargs={'version': 'v1'})
         self.bloq_data = [
             {
@@ -40,20 +40,19 @@ class BloqAPITest(APITestCase):
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
-    def test_create_multiple_bloqs(self):
+    def test_create_multiple_bloqs(self)->None:
         response = self.client.post(self.url, self.bloq_data, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Bloq.objects.count(), 2)
 
-    def test_get_bloq_list(self):
+    def test_get_bloq_list(self)->None:
         Bloq.objects.create(id="1", title="Bloq A", address="Address A")
         Bloq.objects.create(id="2", title="Bloq B", address="Address B")
-
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data['count'], 2)
 
-    def test_create_invalid_bloq(self):
+    def test_create_invalid_bloq(self)->None:
         invalid_data = [
             {
                 "id": "",  # Empyt ID 
@@ -64,13 +63,13 @@ class BloqAPITest(APITestCase):
         response = self.client.post(self.url, invalid_data, format='json')
         self.assertEqual(response.status_code, 400)  # Bad Request
 
-    def test_get_bloq_detail(self):
+    def test_get_bloq_detail(self)->None:
         Bloq.objects.create(id="1", title="Bloq A", address="Address A")
         response = self.client.get(f"/api/v1/bloq/1/", format='json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['title'], 'Bloq A')
 
-    def test_update_bloq(self):
+    def test_update_bloq(self)->None:
         Bloq.objects.create(id="1", title="Bloq A", address="Address A")
         payload = {  
             "title": "Bloq Updated",  
@@ -79,13 +78,13 @@ class BloqAPITest(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['title'], 'Bloq Updated')
 
-    def test_delete_bloq(self):
+    def test_delete_bloq(self)->None:
         Bloq.objects.create(id="1", title="Bloq A", address="Address A")
         response = self.client.delete(f"/api/v1/bloq/1/", format='json')
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Bloq.objects.count(), 0)
 
-    def create_bloq_locker(self):
+    def create_bloq_locker(self)->None:
         bloq_a = Bloq.objects.create(id="1", title="Bloq A", address="Address A")
         bloq_b = Bloq.objects.create(id="2", title="Bloq B", address="Address B")
         Locker.objects.create(
@@ -95,37 +94,37 @@ class BloqAPITest(APITestCase):
             id="2", bloqId=bloq_b, status=LockerStatus.CLOSED, isOccupied=True, size=LockerSize.M
         )
 
-    def test_get_bloq_lockers(self):
+    def test_get_bloq_lockers(self)->None:
         self.create_bloq_locker()
         response = self.client.get(f"/api/v1/bloq/1/lockers/", format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['status'], LockerStatus.OPEN)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['status'], LockerStatus.OPEN)
 
-    def test_get_bloq_locker_available(self):
+    def test_get_bloq_locker_available(self)->None:
         self.create_bloq_locker()
         response = self.client.get(f"/api/v1/bloq/1/lockers/available/", format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['isOccupied'], False)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['isOccupied'], False)
     
-    def test_get_bloq_locker_available_zero(self):
+    def test_get_bloq_locker_available_zero(self)->None:
         self.create_bloq_locker()
         response = self.client.get(f"/api/v1/bloq/2/lockers/available/", format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
 
-    def test_get_bloq_locker_occupied(self):
+    def test_get_bloq_locker_occupied(self)->None:
         self.create_bloq_locker()
         response = self.client.get(f"/api/v1/bloq/2/lockers/occupied/", format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['isOccupied'], True)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['isOccupied'], True)
 
-    def test_get_bloq_locker_occupied_zero(self):
+    def test_get_bloq_locker_occupied_zero(self)->None:
         self.create_bloq_locker()
         response = self.client.get(f"/api/v1/bloq/1/lockers/occupied/", format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
 
     

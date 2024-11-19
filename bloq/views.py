@@ -3,16 +3,28 @@ Module for the Bloq views.
 '''
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.pagination import PageNumberPagination
 from drf_yasg.utils import swagger_auto_schema
 from locker.models import Locker
 from locker.serializers import LockerSerializer
 from .models import Bloq
 from .serializers import BloqSerializer, BloqListSerializer
 
+class StandardResultsSetPagination(PageNumberPagination):
+    '''
+    Standard pagination for the Bloq views.
+    '''
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class BloqBulkCreateView(generics.ListCreateAPIView):
     '''
     List all Bloqs or create multiple Bloqs.'''
-    queryset = Bloq.objects.all()
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    queryset = Bloq.objects.all().order_by('id')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -24,6 +36,7 @@ class BloqBulkCreateView(generics.ListCreateAPIView):
         responses={200: BloqSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
+        # pagination
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -37,7 +50,7 @@ class BloqBulkCreateView(generics.ListCreateAPIView):
 class BloqDetailView(generics.RetrieveUpdateDestroyAPIView):
     '''
     Retrieve, update or delete a Bloq instance.'''
-    queryset = Bloq.objects.all()
+    queryset = Bloq.objects.all().order_by('id')
     serializer_class = BloqSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
@@ -70,10 +83,15 @@ class BloqLockersListView(generics.ListAPIView):
     '''
     serializer_class = LockerSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         bloq_id = self.kwargs.get('id')
-        return Locker.objects.filter(bloqId=bloq_id)
+        if not bloq_id:
+            raise ValidationError("Bloq ID is required.")
+        if not Bloq.objects.filter(id=bloq_id).order_by('id').exists():
+            raise NotFound("Bloq not found.")
+        return Locker.objects.filter(bloqId=bloq_id).order_by('id')
 
     @swagger_auto_schema(
         operation_description="Return the list of all lockers of a Bloq.",
@@ -86,15 +104,16 @@ class BloqLockerAvailableView(generics.ListAPIView):
     List all available lockers of a Bloq.'''
     serializer_class = LockerSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         bloq_id = self.kwargs.get('id')
         is_occupied = False
-        return Locker.objects.filter(bloqId=bloq_id, isOccupied=is_occupied)
+        return Locker.objects.filter(bloqId=bloq_id, isOccupied=is_occupied).order_by('id')
 
     @swagger_auto_schema(
         operation_description="Return the list of all available lockers of a Bloq.",
-        responses={200: BloqSerializer}
+        responses={200: LockerSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -104,15 +123,16 @@ class BloqLockerOccupiedView(generics.ListAPIView):
     List all occupied lockers of a Bloq.'''
     serializer_class = LockerSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         bloq_id = self.kwargs.get('id')
         is_occupied = True
-        return Locker.objects.filter(bloqId=bloq_id, isOccupied=is_occupied)
+        return Locker.objects.filter(bloqId=bloq_id, isOccupied=is_occupied).order_by('id')
 
     @swagger_auto_schema(
         operation_description="Return the list of all occupied lockers of a Bloq.",
-        responses={200: BloqSerializer}
+        responses={200: LockerSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
