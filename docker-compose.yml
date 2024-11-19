@@ -26,7 +26,7 @@ services:
   
   test:
     build: .
-    command: python manage.py test
+    command: python manage.py test 
     volumes:
       - .:/app
     depends_on:
