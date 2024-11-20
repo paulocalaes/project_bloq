@@ -1,6 +1,8 @@
-'''
+"""
 Views module for managing Bloq entities and their associated Lockers.
-'''
+"""
+
+import logging
 from typing import Any, Type
 from django.db.models import QuerySet
 from rest_framework import generics
@@ -15,37 +17,40 @@ from locker.serializers import LockerSerializer
 from .models import Bloq
 from .serializers import BloqSerializer, BloqListSerializer
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
 class StandardResultsSetPagination(PageNumberPagination):
-    '''
+    """
     Standard pagination class for Bloq views.
 
     This pagination class sets the default page size to 10 items per page,
     allows clients to set a custom page size using the 'page_size' query parameter,
     and limits the maximum page size to 100 items.
-    '''
+    """
     page_size: int = 10
     page_size_query_param: str = 'page_size'
     max_page_size: int = 100
 
 class BloqBulkCreateView(generics.ListCreateAPIView):
-    '''
+    """
     API view to list all Bloqs or create multiple Bloqs.
 
     - **GET**: Returns a paginated list of all Bloq instances.
     - **POST**: Allows bulk creation of multiple Bloq instances.
-    '''
+    """
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     queryset = Bloq.objects.all().order_by('id')
 
     def get_serializer_class(self) -> Type[BloqSerializer]:
-        '''
+        """
         Return the appropriate serializer class based on the request method.
 
         Returns:
             BloqListSerializer if the request method is POST,
             otherwise BloqSerializer.
-        '''
+        """
         if self.request.method == 'POST':
             return BloqListSerializer
         return BloqSerializer
@@ -60,6 +65,7 @@ class BloqBulkCreateView(generics.ListCreateAPIView):
         Returns:
             A paginated list of Bloq instances.
         """
+        logger.info("User '%s' requested a list of all Bloqs.", request.user.id)
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -76,7 +82,10 @@ class BloqBulkCreateView(generics.ListCreateAPIView):
         Returns:
             The created Bloq instances.
         """
-        return super().post(request, *args, **kwargs)
+        logger.info("User '%s' is creating multiple Bloqs.", request.user.id)
+        response = super().post(request, *args, **kwargs)
+        logger.info("User '%s' successfully created Bloqs.", request.user.id)
+        return response
 
 class BloqDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -101,6 +110,8 @@ class BloqDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             The requested Bloq instance.
         """
+        bloq_id = kwargs.get('id')
+        logger.info("User '%s' requested Bloq with ID '%s'.", request.user.id, bloq_id)
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -117,7 +128,11 @@ class BloqDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             The updated Bloq instance.
         """
-        return super().put(request, *args, **kwargs)
+        bloq_id = kwargs.get('id')
+        logger.info("User '%s' is updating Bloq with ID '%s'.", request.user.id, bloq_id)
+        response = super().put(request, *args, **kwargs)
+        logger.info("User '%s' successfully updated Bloq with ID '%s'.", request.user.id, bloq_id)
+        return response
 
     @swagger_auto_schema(
         responses={204: None}
@@ -129,7 +144,11 @@ class BloqDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             An empty response with HTTP status 204 (No Content).
         """
-        return super().delete(request, *args, **kwargs)
+        bloq_id = kwargs.get('id')
+        logger.info("User '%s' is deleting Bloq with ID '%s'.", request.user.id, bloq_id)
+        response = super().delete(request, *args, **kwargs)
+        logger.info("User '%s' successfully deleted Bloq with ID '%s'.", request.user.id, bloq_id)
+        return response
 
 class BloqLockersListView(generics.ListAPIView):
     """
@@ -156,9 +175,14 @@ class BloqLockersListView(generics.ListAPIView):
         """
         bloq_id = self.kwargs.get('id')
         if not bloq_id:
+            logger.error("Bloq ID not provided in request by user '%s'.", self.request.user.id)
             raise ValidationError("Bloq ID is required.")
         if not Bloq.objects.filter(id=bloq_id).exists():
+            logger.error(
+                "Bloq with ID '%s' not found for user '%s'.", bloq_id, self.request.user.id
+                )
             raise NotFound("Bloq not found.")
+        logger.info("User '%s' requested Lockers for Bloq ID '%s'.", self.request.user.id, bloq_id)
         return Locker.objects.filter(bloqId=bloq_id).order_by('id')
 
     @swagger_auto_schema(
@@ -198,9 +222,16 @@ class BloqLockerAvailableView(generics.ListAPIView):
         """
         bloq_id = self.kwargs.get('id')
         if not bloq_id:
+            logger.error("Bloq ID not provided in request by user '%s'.", self.request.user.id)
             raise ValidationError("Bloq ID is required.")
         if not Bloq.objects.filter(id=bloq_id).exists():
+            logger.error(
+                "Bloq with ID '%s' not found for user '%s'.", bloq_id, self.request.user.id
+                )
             raise NotFound("Bloq not found.")
+        logger.info(
+            "User '%s' requested available Lockers for Bloq ID '%s'.", self.request.user.id, bloq_id
+            )
         return Locker.objects.filter(bloqId=bloq_id, isOccupied=False).order_by('id')
 
     @swagger_auto_schema(
@@ -240,9 +271,16 @@ class BloqLockerOccupiedView(generics.ListAPIView):
         """
         bloq_id = self.kwargs.get('id')
         if not bloq_id:
+            logger.error("Bloq ID not provided in request by user '%s'.", self.request.user.id)
             raise ValidationError("Bloq ID is required.")
         if not Bloq.objects.filter(id=bloq_id).exists():
+            logger.error(
+                "Bloq with ID '%s' not found for user '%s'.", bloq_id, self.request.user.id
+                )
             raise NotFound("Bloq not found.")
+        logger.info(
+            "User '%s' requested occupied Lockers for Bloq ID '%s'.", self.request.user.id, bloq_id
+            )
         return Locker.objects.filter(bloqId=bloq_id, isOccupied=True).order_by('id')
 
     @swagger_auto_schema(

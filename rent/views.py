@@ -5,6 +5,7 @@ This module contains API views for managing Rent instances, including listing,
 creating multiple rents, handling rent drop-offs, and processing rent pickups.
 """
 
+import logging
 from typing import Any, Type
 from rest_framework import generics
 from rest_framework.response import Response
@@ -15,6 +16,9 @@ from drf_yasg.utils import swagger_auto_schema
 from locker.models import Locker, LockerStatus
 from .models import Rent, RentStatus
 from .serializers import RentSerializer, RentListSerializer
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -64,6 +68,7 @@ class RentBulkCreateView(generics.ListCreateAPIView):
         Returns:
             - Response: A paginated list of Rent instances.
         """
+        logger.info("User '%s' requested a list of all Rents.", request.user.id)
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -79,12 +84,16 @@ class RentBulkCreateView(generics.ListCreateAPIView):
         Returns:
             - Response: The created Rent instances.
         """
+        logger.info("User '%s' is creating multiple Rents.", request.user.id)
         # Change the status of the lockers to 'OPEN' and 'isOccupied' to False
         for rent_data in request.data:
             locker_id = rent_data['lockerId']
             Locker.objects.filter(id=locker_id).update(status=LockerStatus.OPEN, isOccupied=False)
             rent_data['status'] = RentStatus.WAITING_DROPOFF
-        return super().post(request, *args, **kwargs)
+            logger.debug("Updated Locker ID '%s' to status OPEN and isOccupied False.", locker_id)
+        response = super().post(request, *args, **kwargs)
+        logger.info("User '%s' successfully created Rents.", request.user.id)
+        return response
 
 
 class RentDropoffView(generics.UpdateAPIView):
@@ -113,13 +122,17 @@ class RentDropoffView(generics.UpdateAPIView):
         Returns:
             - Response: The updated Rent instance.
         """
+        rent_id = kwargs.get('id')
+        logger.info("User '%s' is processing drop-off for Rent ID '%s'.", request.user.id, rent_id)
         rent = self.get_object()
         locker = rent.lockerId
         locker.status = LockerStatus.CLOSED
         locker.isOccupied = True
         locker.save()
+        logger.debug("Updated Locker ID '%s' to status CLOSED and isOccupied True.", locker.id)
         rent.status = RentStatus.WAITING_PICKUP
         rent.save()
+        logger.info("Rent ID '%s' status updated to WAITING_PICKUP.", rent_id)
         serializer = self.get_serializer(rent)
         return Response(serializer.data)
 
@@ -150,12 +163,16 @@ class RentPickupView(generics.UpdateAPIView):
         Returns:
             - Response: The updated Rent instance.
         """
+        rent_id = kwargs.get('id')
+        logger.info("User '%s' is processing pickup for Rent ID '%s'.", request.user.id, rent_id)
         rent = self.get_object()
         locker = rent.lockerId
         locker.status = LockerStatus.OPEN
         locker.isOccupied = False
         locker.save()
+        logger.debug("Updated Locker ID '%s' to status OPEN and isOccupied False.", locker.id)
         rent.status = RentStatus.DELIVERED
         rent.save()
+        logger.info("Rent ID '%s' status updated to DELIVERED.", rent_id)
         serializer = self.get_serializer(rent)
         return Response(serializer.data)

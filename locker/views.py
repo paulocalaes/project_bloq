@@ -6,6 +6,7 @@ creating multiple lockers, retrieving, updating, and deleting individual lockers
 as well as listing available lockers with optional filtering.
 """
 
+import logging
 from typing import Any, Type
 from django.db.models import QuerySet
 from drf_yasg import openapi
@@ -20,6 +21,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from .serializers import LockerSerializer, LockerListSerializer
 from .models import Locker, LockerStatus
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -69,6 +73,7 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
         Returns:
             - Response: A paginated list of Locker instances.
         """
+        logger.info("User '%s' requested a list of all Lockers.", request.user.id)
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -82,7 +87,10 @@ class LockerBulkCreateView(generics.ListCreateAPIView):
         Returns:
             - Response: The created Locker instances.
         """
-        return super().post(request, *args, **kwargs)
+        logger.info("User '%s' is creating multiple Lockers.", request.user.id)
+        response = super().post(request, *args, **kwargs)
+        logger.info("User '%s' successfully created Lockers.", request.user.id)
+        return response
 
 
 class LockerDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -108,6 +116,8 @@ class LockerDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             - Response: The requested Locker instance.
         """
+        locker_id = kwargs.get('id')
+        logger.info("User '%s' requested Locker with ID '%s'.", request.user.id, locker_id)
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
@@ -121,7 +131,13 @@ class LockerDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             - Response: The updated Locker instance.
         """
-        return super().put(request, *args, **kwargs)
+        locker_id = kwargs.get('id')
+        logger.info("User '%s' is updating Locker with ID '%s'.", request.user.id, locker_id)
+        response = super().put(request, *args, **kwargs)
+        logger.info(
+            "User '%s' successfully updated Locker with ID '%s'.", request.user.id, locker_id
+            )
+        return response
 
     @swagger_auto_schema(
         responses={204: None}
@@ -133,7 +149,13 @@ class LockerDetailView(generics.RetrieveUpdateDestroyAPIView):
         Returns:
             - Response: An empty response with HTTP status 204 (No Content).
         """
-        return super().delete(request, *args, **kwargs)
+        locker_id = kwargs.get('id')
+        logger.info("User '%s' is deleting Locker with ID '%s'.", request.user.id, locker_id)
+        response = super().delete(request, *args, **kwargs)
+        logger.info(
+            "User '%s' successfully deleted Locker with ID '%s'.", request.user.id, locker_id
+            )
+        return response
 
 
 class AvailableLockerListView(generics.ListAPIView):
@@ -167,11 +189,18 @@ class AvailableLockerListView(generics.ListAPIView):
         queryset = queryset.filter(isOccupied=False, status=LockerStatus.OPEN).order_by('id')
 
         bloq_id = self.request.query_params.get('bloqId', None)
+        size = self.request.query_params.get('size', None)
+
         if bloq_id:
             queryset = queryset.filter(bloqId=bloq_id)
-        size = self.request.query_params.get('size', None)
+            logger.info(
+                "User '%s' filtered Lockers by Bloq ID '%s'.", self.request.user.id, bloq_id
+                )
         if size:
             queryset = queryset.filter(size=size)
+            logger.info("User '%s' filtered Lockers by size '%s'.", self.request.user.id, size)
+
+        logger.info("User '%s' requested available Lockers.", self.request.user.id)
         return queryset
 
     @swagger_auto_schema(
