@@ -6,7 +6,6 @@ creating multiple rents, handling rent drop-offs, and processing rent pickups.
 """
 
 from typing import Any, Type
-from django.db.models import QuerySet
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -114,7 +113,6 @@ class RentDropoffView(generics.UpdateAPIView):
         Returns:
             - Response: The updated Rent instance.
         """
-        rent_id = kwargs['id']
         rent = self.get_object()
         locker = rent.lockerId
         locker.status = LockerStatus.CLOSED
@@ -152,7 +150,6 @@ class RentPickupView(generics.UpdateAPIView):
         Returns:
             - Response: The updated Rent instance.
         """
-        rent_id = kwargs['id']
         rent = self.get_object()
         locker = rent.lockerId
         locker.status = LockerStatus.OPEN

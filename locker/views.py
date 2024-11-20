@@ -6,16 +6,15 @@ creating multiple lockers, retrieving, updating, and deleting individual lockers
 as well as listing available lockers with optional filtering.
 """
 
-from typing import Any, Type, Optional
+from typing import Any, Type
 from django.db.models import QuerySet
-from rest_framework.request import Request
-from rest_framework.response import Response
-from rest_framework.serializers import Serializer
-
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
